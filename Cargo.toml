@@ -1,0 +1,12 @@
+[package]
+name = "portfolio"
+version = "0.0.1"
+edition = "2024"
+
+[dependencies]
+uuid = { version = "1.22.0", features = ["v7"] }
+axum = { version = "0.8.8", features = ["json"] }
+serde = { version = "1", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

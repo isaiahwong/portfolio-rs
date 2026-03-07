@@ -1,0 +1,16 @@
+# Deny all
+*
+
+# Allow
+!.gitignore
+!.Makefile
+!Cargo.toml
+!Cargo.lock
+!README.md
+!src
+!src/
+!src/**
+!rustfmt.toml
+!ui
+!ui/
+!ui/**
