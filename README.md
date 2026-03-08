@@ -90,18 +90,24 @@ npm run build
 - (Flip) Position flips (changes direction) when an execution on the opposite side exceeds the current quantity.
 
 #### Long
-Exec (Buy 100) -> Pos (Long 100)
-Exec (Sell 40) -> Pos (Long 60)
-Exec (Sell 60) -> Pos (Nett) -> Snapshot (r_pnl)
+```
+Exec (Buy 100) -> Pos (Long 100)  
+Exec (Sell 40) -> Pos (Long 60)  
+Exec (Sell 60) -> Pos (Nett) -> Snapshot (r_pnl)  
+```
 
 #### Short 
-Exec (Sell 100) -> Pos (Short 100)
+```
+Exec (Sell 100) -> Pos (Short 100)  
 Exec (Buy 40)   -> Pos (Short 60)
 Exec (Buy 60)   -> Pos (Nett) -> Snapshot (r_pnl)
+```
 
 #### Flip - change directions
+```
 Exec (Buy 100)  -> Pos (Long 100)
 Exec (Sell 150) -> Snapshot (r_pnl) -> Pos (Short 50)
+```
 
 ## Limitations
 - Persistence: Everything is in-memory and market data is static. 
