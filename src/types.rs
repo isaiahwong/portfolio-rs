@@ -1,65 +1,48 @@
+use crate::portfolio::types::Currency;
 use crate::portfolio::types::InstrumentId;
 use crate::portfolio::types::Side;
-use axum::{
-    Json,
-    http::StatusCode,
-    response::{IntoResponse, Response},
-};
 use serde::{Deserialize, Serialize};
 
-pub enum AppError {
-    NotFound(String),
-    Internal(String),
-}
-
-#[derive(Serialize)]
-struct ErrorResponse {
-    error: String,
-}
-
-impl IntoResponse for AppError {
-    fn into_response(self) -> Response {
-        let (status, error_message) = match self {
-            AppError::NotFound(msg) => (StatusCode::NOT_FOUND, msg),
-            AppError::Internal(msg) => (StatusCode::INTERNAL_SERVER_ERROR, msg),
-        };
-
-        let body = Json(ErrorResponse { error: error_message });
-
-        (status, body).into_response()
-    }
-}
-
+/// Request for creating a new portfolio.
 #[derive(Deserialize)]
-pub struct CreatePortfolioReq {
+pub struct CreatePortfolioRequest {
     pub name: Option<String>,
 }
 
+/// Response for a created portfolio.
 #[derive(Serialize)]
-pub struct CreatePortfolioRes {
+pub struct CreatePortfolioResponse {
     pub name: String,
 }
 
+/// Request for adding an execution to a portfolio.
 #[derive(Deserialize)]
-pub struct AddExecReq {
+pub struct AddExecRequest {
     pub instrument_id: InstrumentId,
     pub side: Side,
     pub qty: f64,
     pub px: f64,
 }
 
+/// Result of portfolio calculation.
 #[derive(Serialize)]
-pub struct PnlResponse {
+pub struct CalcResponse {
     pub currency: String,
     pub unrealized_pnl: f64,
+    pub realized_pnl: f64,
+    pub total_value: f64,
 }
 
+/// Query params for portfolio calculation.
 #[derive(Deserialize)]
-pub struct PortfolioPath {
-    pub id: String,
-}
-
-#[derive(Deserialize)]
-pub struct PnlQuery {
+pub struct CalcQuery {
     pub currency: Option<String>,
+}
+
+/// Response for current market data snapshots.
+#[derive(Serialize)]
+pub struct MarketDataResponse {
+    pub currencies: Vec<Currency>,
+    pub instruments: Vec<InstrumentId>,
+    pub mid_prices: Vec<(InstrumentId, f64)>,
 }

@@ -14,3 +14,9 @@
 !ui
 !ui/
 !ui/**
+!Makefile
+!build.sh
+!docs
+!docs/
+!docs/*
+!docs/**

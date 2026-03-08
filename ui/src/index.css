@@ -54,7 +54,7 @@
     @apply border-border;
   }
   html {
-    @apply h-full min-h-screen w-full text-lg;
+    @apply h-full min-h-screen w-full text-sm;
   }
   body {
     @apply h-full min-h-screen w-full bg-background text-foreground antialiased;

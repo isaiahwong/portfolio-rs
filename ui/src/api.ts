@@ -1,7 +1,12 @@
-const BASE = ''
+import type {
+  PositionSnapshot,
+  MarketData,
+  PortfolioCalc,
+  ExecutionRequest,
+} from './types'
 
-async function fetchJson<T>(slug: string, opts: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${BASE}${slug}`, {
+async function fetchAPI<T>(slug: string, opts: RequestInit = {}): Promise<T> {
+  const res = await fetch(slug, {
     ...opts,
     headers: { 'Content-Type': 'application/json', ...opts.headers },
   })
@@ -12,88 +17,42 @@ async function fetchJson<T>(slug: string, opts: RequestInit = {}): Promise<T> {
   return res.json()
 }
 
-export interface InstrumentId {
-  symbol: string
-  venue: string
-}
-
-export type Instrument = InstrumentId
-
-export interface Execution {
-  id: string
-  instrument_id: InstrumentId
-  portfolio_id: string
-  side: 'Buy' | 'Sell'
-  qty: number
-  px: number
-}
-
-export interface PositionSnapshot {
-  id: string
-  position_id: { instrument_id: InstrumentId; portfolio_id: string }
-  executions: Execution[]
-  position_side: 'Flat' | 'Long' | 'Short'
-  qty: number
-  base_currency: { code: string } | null
-  quote_currency: { code: string }
-  avg_px: number
-  realized_pnl: number
-}
-
-export interface Pnl {
-  unrealized_pnl: number
-  currency: string
-}
-
-export interface CreatePortfolioResponse {
-  name: string
-}
-
 export function listPortfolios(): Promise<string[]> {
-  return fetchJson('/portfolios')
+  return fetchAPI('/portfolios')
 }
 
-export function createPortfolio(name: string): Promise<CreatePortfolioResponse> {
-  return fetchJson('/portfolios', {
+export function createPortfolio(name: string): Promise<{ name: string }> {
+  return fetchAPI('/portfolios', {
     method: 'POST',
-    body: JSON.stringify({ name: name || undefined }),
+    body: JSON.stringify({ name }),
   })
 }
 
 export function getPositions(portfolioId: string): Promise<PositionSnapshot[]> {
-  return fetchJson(`/portfolios/${encodeURIComponent(portfolioId)}/positions`)
+  return fetchAPI(`/portfolios/${encodeURIComponent(portfolioId)}/positions`)
 }
 
 export function getHistory(portfolioId: string): Promise<PositionSnapshot[]> {
-  return fetchJson(`/portfolios/${encodeURIComponent(portfolioId)}/history`)
-}
-
-export function getExecutions(portfolioId: string): Promise<Execution[]> {
-  return fetchJson(`/portfolios/${encodeURIComponent(portfolioId)}/executions`)
+  return fetchAPI(`/portfolios/${encodeURIComponent(portfolioId)}/history`)
 }
 
 export function addExecution(
   portfolioId: string,
-  body: { instrument_id: InstrumentId; side: 'Buy' | 'Sell'; qty: number; px: number }
+  body: ExecutionRequest
 ): Promise<unknown> {
-  return fetchJson(`/portfolios/${encodeURIComponent(portfolioId)}/executions`, {
+  return fetchAPI(`/portfolios/${encodeURIComponent(portfolioId)}/executions`, {
     method: 'POST',
     body: JSON.stringify(body),
   })
 }
 
-export function getPnl(portfolioId: string, currency = 'USD'): Promise<Pnl> {
-  return fetchJson(`/portfolios/${encodeURIComponent(portfolioId)}/pnl?currency=${currency}`)
+export function getPortfolioCalc(
+  portfolioId: string,
+  currency = 'USD'
+): Promise<PortfolioCalc> {
+  return fetchAPI(`/portfolios/${encodeURIComponent(portfolioId)}/calc?currency=${currency}`)
 }
 
-export function listInstruments(): Promise<Instrument[]> {
-  return fetchJson('/instruments')
-}
-
-export interface Currency {
-  code: string
-}
-
-export function listCurrencies(): Promise<Currency[]> {
-  return fetchJson('/currencies')
+export function getMarketData(): Promise<MarketData> {
+  return fetchAPI('/marketdata')
 }

@@ -12,8 +12,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/portfolios': 'http://localhost:3000',
-      '/currencies': 'http://localhost:3000',
-      '/instruments': 'http://localhost:3000',
+      '/marketdata': 'http://localhost:3000',
     },
   },
 })

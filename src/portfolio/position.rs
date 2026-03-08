@@ -3,6 +3,7 @@ use uuid::Uuid;
 
 use super::types::{Currency, Execution, Instrument, PositionId, Side};
 
+/// Current side of a position.
 #[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PositionSide {
     Flat,
@@ -10,12 +11,14 @@ pub enum PositionSide {
     Short,
 }
 
+/// Status of a position.
 #[derive(Debug, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum PositionStatus {
     Open,
     Closed,
 }
 
+/// Represents a live position tracking executions and PnL.
 pub struct Position {
     /// The id that pairs instrument_id and portfolio_id.
     pub id: PositionId,
@@ -51,22 +54,28 @@ impl Position {
                 portfolio_id: execution.portfolio_id.clone(),
             },
             executions: Vec::<Execution>::new(),
-            side: execution.side,
             position_side: PositionSide::Flat,
-            signed_qty: 0.0,
-            qty: 0.0,
+            status: PositionStatus::Open,
             base_currency: instrument.base_currency(),
             quote_currency: instrument.quote_currency(),
             multiplier: instrument.multiplier(),
+            side: execution.side,
+
+            signed_qty: 0.0,
+            qty: 0.0,
             avg_px: 0.0,
             realized_pnl: 0.0,
-            status: PositionStatus::Open,
         };
 
         pos.apply(execution);
         pos
     }
 
+    pub fn notional(&self, px: f64) -> f64 {
+        self.qty * self.multiplier * px
+    }
+
+    /// Applies an execution to update quantity, average price, and realized PnL.
     pub fn apply(&mut self, execution: Execution) {
         if self.position_side == PositionSide::Flat {
             self.avg_px = execution.px;
@@ -96,6 +105,7 @@ impl Position {
             }
         }
 
+        // Save execution history
         self.executions.push(execution);
     }
 
@@ -110,6 +120,7 @@ impl Position {
             // Reduce short
             PositionSide::Short => self.realized_pnl += self.calc_pnl(self.avg_px, self.qty, px, qty),
 
+            // Noop
             PositionSide::Flat => {}
         }
 
@@ -127,6 +138,7 @@ impl Position {
             // Reduce long
             PositionSide::Long => self.realized_pnl += self.calc_pnl(self.avg_px, self.qty, px, qty),
 
+            // Noop
             PositionSide::Flat => {}
         }
 
@@ -141,15 +153,20 @@ impl Position {
         self.calc_pnl(self.avg_px, self.qty, market_px, self.qty)
     }
 
+    /// Calculates the weighted sum average price.
     fn calc_avg_px(&self, cur_avg_px: f64, cur_qty: f64, px: f64, qty: f64) -> f64 {
         let cur_cost = cur_avg_px * cur_qty;
         let new_cost = px * qty;
         let total_qty = cur_qty + qty;
 
-        // TODO: check zero div
+        if total_qty == 0.0 {
+            return 0.0;
+        }
+
         (cur_cost + new_cost) / total_qty
     }
 
+    /// Calculates PnL based on the price difference.
     fn calc_pnl(&self, cur_avg_px: f64, cur_qty: f64, close_px: f64, close_qty: f64) -> f64 {
         let qty = cur_qty.min(close_qty);
         let points = match self.position_side {
@@ -162,6 +179,7 @@ impl Position {
     }
 }
 
+/// A snapshot of a position's state.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PositionSnapshot {
     pub id: String,
